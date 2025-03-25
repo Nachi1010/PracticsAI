@@ -4,6 +4,9 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import ThankYou from "./pages/ThankYou";
+import Questionnaire from "./pages/Questionnaire";
+import QuestionnairePage2 from "./pages/QuestionnairePage2";
+import QuestionnairePage3 from "./pages/QuestionnairePage3";
 import "@/components/ui/cta-button.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
@@ -66,6 +69,9 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/thank-you" element={<ThankYou />} />
+              <Route path="/questionnaire" element={<Questionnaire />} />
+              <Route path="/questionnaire/page2" element={<QuestionnairePage2 />} />
+              <Route path="/questionnaire/page3" element={<QuestionnairePage3 />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>

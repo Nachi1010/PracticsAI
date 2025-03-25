@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const ThankYou = () => {
   const { currentLang } = useLanguage();
+  const location = useLocation();
+  const isQuestionnaire = location.search.includes('questionnaire=true') || location.state?.fromQuestionnaire;
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -12,15 +14,27 @@ const ThankYou = () => {
 
   const texts = {
     en: {
-      title: "Thank You for Registering!",
-      subtitle: "We're excited to have you on board.",
-      message: "Our team will contact you shortly with more information about your AI journey.",
+      title: isQuestionnaire 
+        ? "Thank You for Completing the Questionnaire!" 
+        : "Thank You for Registering!",
+      subtitle: isQuestionnaire 
+        ? "Your responses have been submitted successfully." 
+        : "We're excited to have you on board.",
+      message: isQuestionnaire
+        ? "Our team will review your responses and use them to better tailor the course to your needs."
+        : "Our team will contact you shortly with more information about your AI journey.",
       homeLink: "Return to Home"
     },
     he: {
-      title: "תודה על ההרשמה!",
-      subtitle: "אנחנו נרגשים לקבל אתכם.",
-      message: "צוות המומחים שלנו יצור איתכם קשר בקרוב עם מידע נוסף על המסע שלכם בעולם הבינה המלאכותית.",
+      title: isQuestionnaire 
+        ? "תודה על מילוי השאלון!" 
+        : "תודה על ההרשמה!",
+      subtitle: isQuestionnaire 
+        ? "התשובות שלך נשלחו בהצלחה."
+        : "אנחנו נרגשים לקבל אתכם.",
+      message: isQuestionnaire
+        ? "הצוות שלנו יבחן את תשובותיך וישתמש בהן כדי להתאים טוב יותר את הקורס לצרכים שלך."
+        : "צוות המומחים שלנו יצור איתכם קשר בקרוב עם מידע נוסף על המסע שלכם בעולם הבינה המלאכותית.",
       homeLink: "חזרה לדף הבית"
     }
   };

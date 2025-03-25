@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Menu, Globe } from "lucide-react";
+import { Menu, Globe, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getImagePath } from "@/App";
@@ -13,12 +13,14 @@ const translations = {
   en: {
     toggleLanguage: "עברית",
     menuLabel: "Toggle navigation menu",
-    languageLabel: "Switch to Hebrew"
+    languageLabel: "Switch to Hebrew",
+    questionnaire: "Questionnaire"
   },
   he: {
     toggleLanguage: "English",
     menuLabel: "פתח/סגור תפריט",
-    languageLabel: "החלף לאנגלית"
+    languageLabel: "החלף לאנגלית",
+    questionnaire: "שאלון"
   }
 } as const;
 
@@ -70,16 +72,28 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             />
           </Link>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-          className="text-high-contrast hover:bg-dark-light/20 transition-colors"
-          aria-label={t.languageLabel}
-        >
-          <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
-          {t.toggleLanguage}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link to="/questionnaire">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-high-contrast border-high-contrast hover:bg-dark-light/20 transition-colors"
+            >
+              <ClipboardList className="h-5 w-5 mr-2" aria-hidden="true" />
+              {t.questionnaire}
+            </Button>
+          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
+            className="text-high-contrast hover:bg-dark-light/20 transition-colors"
+            aria-label={t.languageLabel}
+          >
+            <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
+            {t.toggleLanguage}
+          </Button>
+        </div>
       </div>
     </header>
   );

@@ -34,7 +34,7 @@ jobs:
       
       - name: Ensure CNAME and .nojekyll 📝
         run: |
-          [ -f CNAME ] && cp CNAME dist/ || echo "practicsai.com" > dist/CNAME
+          [ -f public/CNAME ] && cp public/CNAME dist/ || echo "practicsai.com" > dist/CNAME
           touch dist/.nojekyll
       
       - name: Deploy to GitHub Pages 🚀
