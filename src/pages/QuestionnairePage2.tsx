@@ -144,13 +144,15 @@ const QuestionnairePage2 = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 bg-[url('/images/faq-bg.jpg')] bg-cover bg-center bg-fixed">
       {isLoading ? (
         <div className="flex h-screen w-full items-center justify-center">
           <div className="loader"></div>
         </div>
       ) : (
         <>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-indigo-900/70 bg-radial-gradient -z-10"></div>
+          
           <QuestionnaireHeader 
             mainTitle="שאלון התאמה לתכנית הבינה המלאכותית" 
             pageTitle="שאלון תכונות אישיות" 
@@ -159,25 +161,27 @@ const QuestionnairePage2 = () => {
           />
           
           <div className="container mx-auto px-4 py-10 max-w-4xl">
-            <QuestionnairePage2Content 
-              answers={answers} 
-              updateAnswers={updateAnswers} 
-            />
-            <div className="flex justify-between mt-10">
-              <Button 
-                variant="outline" 
-                onClick={handleBack}
-                className="text-gray-600 hover:bg-gray-100"
-              >
-                חזרה לעמוד הקודם
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
-              >
-                {isSubmitting ? 'אנא המתן...' : 'המשך לעמוד הבא'}
-              </Button>
+            <div className="bg-white/90 backdrop-blur-sm p-6 rounded-lg shadow-lg">
+              <QuestionnairePage2Content 
+                answers={answers} 
+                updateAnswers={updateAnswers} 
+              />
+              <div className="flex justify-between mt-10">
+                <Button 
+                  variant="outline" 
+                  onClick={handleBack}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  חזרה לעמוד הקודם
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
+                >
+                  {isSubmitting ? 'אנא המתן...' : 'המשך לעמוד הבא'}
+                </Button>
+              </div>
             </div>
           </div>
         </>

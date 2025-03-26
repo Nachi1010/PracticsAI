@@ -1,9 +1,8 @@
 import React from 'react';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
-interface Option {
+interface QuestionOption {
   value: string;
   label: string;
 }
@@ -11,48 +10,48 @@ interface Option {
 interface QuestionProps {
   id: string;
   title: string;
-  options: Option[];
-  selectedValue?: string;
+  options: QuestionOption[];
+  selectedValue: string;
   onChange: (id: string, value: string) => void;
 }
 
-const Question: React.FC<QuestionProps> = ({ 
-  id, 
-  title, 
-  options, 
+const Question: React.FC<QuestionProps> = ({
+  id,
+  title,
+  options,
   selectedValue,
-  onChange 
+  onChange
 }) => {
+  const handleChange = (value: string) => {
+    onChange(id, value);
+  };
+
   return (
-    <Card className="mb-6 border-blue-200 shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-r from-blue-50 to-slate-50">
-      <CardHeader className="bg-gradient-to-r from-blue-100 to-slate-100 border-b border-blue-200">
-        <CardTitle className="text-lg text-blue-900 font-medium text-right">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-6 bg-opacity-50">
-        <RadioGroup
-          value={selectedValue}
-          onValueChange={(value) => onChange(id, value)}
-          className="space-y-3"
-          dir="rtl"
-          name={id}
-        >
-          {options.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2 space-x-reverse hover:bg-blue-50 p-2 rounded-lg transition-colors">
-              <RadioGroupItem value={option.value} id={`${id}-${option.value}`} className="text-blue-600" />
-              <Label 
-                htmlFor={`${id}-${option.value}`} 
-                className="text-gray-700 mr-2 cursor-pointer text-right flex-1"
-              >
-                {option.label}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </CardContent>
-    </Card>
+    <div className="p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+      <h3 className="text-xl font-medium text-blue-900 mb-4 text-right">{title}</h3>
+      <RadioGroup
+        value={selectedValue}
+        onValueChange={handleChange}
+        className="space-y-2"
+      >
+        {options.map((option, index) => (
+          <div key={option.value} className="flex items-center justify-end space-x-2 space-x-reverse p-2 rounded-md hover:bg-gray-50">
+            <Label
+              htmlFor={`${id}-${option.value}`}
+              className="flex-grow text-right cursor-pointer text-lg font-normal text-gray-700"
+            >
+              {option.label}
+            </Label>
+            <RadioGroupItem
+              value={option.value}
+              id={`${id}-${option.value}`}
+              className="border-gray-400"
+            />
+          </div>
+        ))}
+      </RadioGroup>
+    </div>
   );
 };
 
-export default Question; 
+export default Question;

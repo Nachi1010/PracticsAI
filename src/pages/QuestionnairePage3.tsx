@@ -11,6 +11,15 @@ import ContactField from '@/components/questionnaire/ContactField';
 // מפתחות לאחסון מקומי
 const ANSWERS_STORAGE_KEY = 'practicsai_questionnaire_answers';
 const CONTACT_STORAGE_KEY = 'practicsai_contact_info';
+const SUBMIT_ATTEMPTS_KEY = 'practicsai_submit_attempts';
+
+// מספר ניסיונות הגשה שימורים במקומי
+interface SubmitAttempt {
+  timestamp: string;
+  userId: string;
+  answers: Answer[];
+  contactInfo: ContactInfo;
+}
 
 const QuestionnairePage3 = () => {
   const navigate = useNavigate();
@@ -118,9 +127,57 @@ const QuestionnairePage3 = () => {
     
     loadAnswers();
     
+    // ניסיון לשלוח הגשות שנכשלו בעבר
+    tryResendPendingSubmissions();
+    
     // גלילה לראש העמוד
     window.scrollTo(0, 0);
   }, [location, navigate]);
+  
+  // ניסיון לשלוח הגשות שנכשלו בעבר
+  const tryResendPendingSubmissions = async () => {
+    try {
+      const pendingSubmits = localStorage.getItem(SUBMIT_ATTEMPTS_KEY);
+      if (pendingSubmits) {
+        const attempts: SubmitAttempt[] = JSON.parse(pendingSubmits);
+        if (Array.isArray(attempts) && attempts.length > 0) {
+          console.log(`Found ${attempts.length} pending submissions, attempting to resend...`);
+          
+          // העתק של המערך המקורי כדי שנוכל לעדכן אותו במהלך הלולאה
+          const remainingAttempts: SubmitAttempt[] = [];
+          
+          for (const attempt of attempts) {
+            try {
+              const { success, error } = await submitQuestionnaire(
+                attempt.userId, 
+                attempt.answers, 
+                attempt.contactInfo
+              );
+              
+              if (!success) {
+                console.log(`Failed to resend submission for user ${attempt.userId}: ${error}`);
+                remainingAttempts.push(attempt);
+              } else {
+                console.log(`Successfully resent submission for user ${attempt.userId}`);
+              }
+            } catch (e) {
+              console.error('Error resending submission:', e);
+              remainingAttempts.push(attempt);
+            }
+          }
+          
+          // עדכון הרשימה בלוקל סטורג' רק אם יש עדיין ניסיונות שנכשלו
+          if (remainingAttempts.length > 0) {
+            localStorage.setItem(SUBMIT_ATTEMPTS_KEY, JSON.stringify(remainingAttempts));
+          } else {
+            localStorage.removeItem(SUBMIT_ATTEMPTS_KEY);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error handling pending submissions:', e);
+    }
+  };
   
   const updateAnswers = (newAnswers: Answer[]) => {
     // החלפת תשובות קיימות או הוספת חדשות
@@ -166,6 +223,44 @@ const QuestionnairePage3 = () => {
     return true;
   };
   
+  // שמירת הגשה לניסיון עתידי
+  const saveSubmitAttempt = () => {
+    try {
+      // שמירת הניסיון הנוכחי לשליחה עתידית
+      const attempt: SubmitAttempt = {
+        timestamp: new Date().toISOString(),
+        userId,
+        answers,
+        contactInfo
+      };
+      
+      // טעינת ניסיונות קיימים אם יש
+      let attempts: SubmitAttempt[] = [];
+      const existingAttempts = localStorage.getItem(SUBMIT_ATTEMPTS_KEY);
+      
+      if (existingAttempts) {
+        try {
+          const parsed = JSON.parse(existingAttempts);
+          if (Array.isArray(parsed)) {
+            attempts = parsed;
+          }
+        } catch (e) {
+          console.error('Error parsing existing attempts:', e);
+        }
+      }
+      
+      // הוספת הניסיון הנוכחי
+      attempts.push(attempt);
+      
+      // שמירה מחדש במאגר מקומי
+      localStorage.setItem(SUBMIT_ATTEMPTS_KEY, JSON.stringify(attempts));
+      
+      console.log('Saved submit attempt for future retry');
+    } catch (e) {
+      console.error('Error saving submit attempt:', e);
+    }
+  };
+  
   const handleSubmit = async () => {
     if (isSubmitting) return;
     
@@ -183,29 +278,43 @@ const QuestionnairePage3 = () => {
       
       let submitSuccessful = false;
       
-      // ניסיון שמירה בשרת
       try {
-        const userId = await getUserId();
+        // קבלת מזהה משתמש - וידוא שיש לנו מזהה תקין
+        const id = userId || await getUserId();
+        
+        if (!id) {
+          throw new Error("לא ניתן לקבל מזהה משתמש חוקי");
+        }
+        
+        console.log(`Attempting to save progress and submit questionnaire for user ${id}`);
         
         // שמירת התקדמות של העמוד האחרון
         const { success: progressSuccess, error: progressError } = 
-          await saveQuestionnaireProgress(userId, 3, answers, contactInfo);
+          await saveQuestionnaireProgress(id, 3, answers, contactInfo);
         
-        if (!progressSuccess || progressError) {
+        if (!progressSuccess) {
           console.warn('Error saving progress to server:', progressError);
+          // שמירת הניסיון לשליחה עתידית
+          saveSubmitAttempt();
         }
         
-        // הגשה סופית של כל השאלון
+        // הגשה סופית של כל השאלון - זה הכי חשוב!
         const { success: submitSuccess, error: submitError } = 
-          await submitQuestionnaire(userId, answers, contactInfo);
+          await submitQuestionnaire(id, answers, contactInfo);
         
-        if (!submitSuccess || submitError) {
-          console.warn('Error submitting questionnaire to server:', submitError);
+        if (!submitSuccess) {
+          console.error('Error submitting questionnaire to server:', submitError);
+          // שמירת הניסיון לשליחה עתידית
+          saveSubmitAttempt();
+          throw new Error(submitError || "אירעה שגיאה בהגשת השאלון לשרת");
         } else {
           submitSuccessful = true;
+          console.log("Questionnaire submitted successfully to database!");
         }
       } catch (serverError) {
         console.error('Server communication error:', serverError);
+        // שמירת הניסיון לשליחה עתידית
+        saveSubmitAttempt();
         // ממשיכים למרות השגיאה כי שמרנו את הנתונים ב-localStorage
       }
       
@@ -213,14 +322,11 @@ const QuestionnairePage3 = () => {
       if (submitSuccessful) {
         toast.success('השאלון הוגש בהצלחה! תודה על השתתפותך');
       } else {
-        toast.warning('השאלון נשמר מקומית אך ייתכן שלא הוגש לשרת בהצלחה. נוכל לקבל את פרטיך ולפנות אליך בהמשך.');
+        // אם ההגשה נכשלה, מציגים הודעה אבל עדיין מנווטים הלאה
+        toast.warning('השאלון נשמר מקומית אך ייתכן שלא הוגש לשרת בהצלחה. ננסה לשלוח את פרטיך שוב בהמשך.');
       }
       
-      // מחיקת הנתונים מהאחסון המקומי לאחר הגשה מוצלחת
-      if (submitSuccessful) {
-        localStorage.removeItem(ANSWERS_STORAGE_KEY);
-        localStorage.removeItem(CONTACT_STORAGE_KEY);
-      }
+      // נשאיר את הנתונים באחסון המקומי גם אם ההגשה הצליחה, למקרה שיש צורך בשחזור
       
       // ניווט לדף תודה
       setTimeout(() => {
@@ -228,8 +334,7 @@ const QuestionnairePage3 = () => {
       }, 1500);
     } catch (error) {
       console.error('Error in submission process:', error);
-      toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
-    } finally {
+      toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה בתהליך ההגשה');
       setIsSubmitting(false);
     }
   };
@@ -240,13 +345,15 @@ const QuestionnairePage3 = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 bg-[url('/images/faq-bg.jpg')] bg-cover bg-center bg-fixed">
       {isLoading ? (
         <div className="flex h-screen w-full items-center justify-center">
           <div className="loader"></div>
         </div>
       ) : (
         <>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/60 to-indigo-900/70 bg-radial-gradient -z-10"></div>
+          
           <QuestionnaireHeader 
             mainTitle="שאלון התאמה לתכנית הבינה המלאכותית" 
             pageTitle="שאלון ערכי מוסף ופרטי קשר" 
@@ -255,39 +362,41 @@ const QuestionnairePage3 = () => {
           />
           
           <div className="container mx-auto px-4 py-10 max-w-4xl">
-            <QuestionnairePage3Content 
-              answers={answers} 
-              updateAnswers={updateAnswers} 
-            />
-            
-            <div className="my-12">
-              <h2 className="text-xl font-semibold text-blue-900 mb-4 text-right">
-                פרטי התקשרות
-              </h2>
-              <p className="text-gray-600 mb-6 text-right">
-                אנא מלא/י את פרטי ההתקשרות שלך כדי שנוכל ליצור איתך קשר בנוגע לתוצאות השאלון
-              </p>
-              <ContactField 
-                contactInfo={contactInfo} 
-                onChange={updateContactInfo} 
+            <div className="bg-white/90 backdrop-blur-sm p-6 rounded-lg shadow-lg">
+              <QuestionnairePage3Content 
+                answers={answers} 
+                updateAnswers={updateAnswers} 
               />
-            </div>
-            
-            <div className="flex justify-between mt-10">
-              <Button 
-                variant="outline" 
-                onClick={handleBack}
-                className="text-gray-600 hover:bg-gray-100"
-              >
-                חזרה לעמוד הקודם
-              </Button>
-              <Button 
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
-              >
-                {isSubmitting ? 'שולח...' : 'הגשת השאלון'}
-              </Button>
+              
+              <div className="my-12">
+                <h2 className="text-xl font-semibold text-blue-900 mb-4 text-right">
+                  פרטי התקשרות
+                </h2>
+                <p className="text-gray-600 mb-6 text-right">
+                  אנא מלא/י את פרטי ההתקשרות שלך כדי שנוכל ליצור איתך קשר בנוגע לתוצאות השאלון
+                </p>
+                <ContactField 
+                  contactInfo={contactInfo} 
+                  onChange={updateContactInfo} 
+                />
+              </div>
+              
+              <div className="flex justify-between mt-10">
+                <Button 
+                  variant="outline" 
+                  onClick={handleBack}
+                  className="text-gray-600 hover:bg-gray-100"
+                >
+                  חזרה לעמוד הקודם
+                </Button>
+                <Button 
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
+                >
+                  {isSubmitting ? 'שולח...' : 'הגשת השאלון'}
+                </Button>
+              </div>
             </div>
           </div>
         </>

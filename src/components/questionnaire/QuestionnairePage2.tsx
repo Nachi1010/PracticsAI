@@ -20,7 +20,7 @@ const QuestionnairePage2: React.FC<QuestionnairePage2Props> = ({ answers, update
   return (
     <div className="space-y-8">
       <p className="text-gray-600 text-center mb-8 text-lg">
-        השאלות הבאות עוזרות לנו להבין את סגנון העבודה והחשיבה שלך כדי להתאים את הלמידה ולשבץ אותך בצוות המתאים
+        השאלות הבאות עוזרות לנו להבין את סגנון העבודה והחשיבה שלך כדי לשבץ אותך בצוות המתאים
       </p>
 
       <Question
