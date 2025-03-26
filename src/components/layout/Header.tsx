@@ -37,48 +37,26 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
 
   const t = translations[currentLang];
 
-  // הגדרות קבועות וערכים מדויקים עבור ההידר
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const transitionDuration = "300ms"; // מהירות אחידה בכל סוגי המכשירים
-  const headerHeight = scrolled ? '3rem' : '4rem'; // גבהים ספציפיים ולא התקנים יחסיים
-  
   return (
     <header
-      className="fixed top-0 left-0 right-0 w-full z-50 backdrop-blur-md"
+      className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out backdrop-blur-md
+        ${scrolled ? 'h-[clamp(3rem,4vw,4rem)] bg-slate-800/85' : 'h-[clamp(4rem,6vw,6rem)] bg-slate-800'}`}
       role="banner"
       style={{ 
-        transition: `all ${transitionDuration} ease-out`,
-        height: headerHeight,
-        backgroundColor: scrolled ? 'rgba(30, 41, 59, 0.9)' : 'rgb(30, 41, 59)',
-        willChange: 'transform, height, background-color',
-        transform: 'translateZ(0)',
-        display: 'flex',
-        alignItems: 'center',
-        borderBottom: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
+        transform: 'translateY(0)' 
       }}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between h-full">
+      <div className="container mx-auto flex items-center justify-between h-full">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-dark-light/20 text-high-contrast"
-            style={{
-              transition: `all ${transitionDuration} ease-out`,
-              height: scrolled ? '2.25rem' : '2.75rem',
-              width: scrolled ? '2.25rem' : '2.75rem',
-            }}
+            className={`hover:bg-dark-light/20 text-high-contrast transition-all duration-700
+              ${scrolled ? 'h-10 w-10' : 'h-12 w-12'}`}
             onClick={onMenuToggle}
             aria-label={t.menuLabel}
           >
-            <Menu 
-              style={{
-                transition: `all ${transitionDuration} ease-out`,
-                height: scrolled ? '1.25rem' : '1.5rem',
-                width: scrolled ? '1.25rem' : '1.5rem',
-              }}
-              aria-hidden="true" 
-            />
+            <Menu className={`transition-all duration-700 ${scrolled ? 'h-6 w-6' : 'h-8 w-8'}`} aria-hidden="true" />
           </Button>
           <Link 
             to="/" 
@@ -88,11 +66,7 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             <img 
               src={getImagePath("/images/2.png")}
               alt="Pixel"
-              style={{
-                width: 'auto',
-                transition: `all ${transitionDuration} ease-out`,
-                height: scrolled ? '1.75rem' : '2.25rem'
-              }}
+              className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
             />
           </Link>
         </div>

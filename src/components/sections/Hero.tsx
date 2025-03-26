@@ -30,11 +30,11 @@ export const Hero = () => {
   };
 
   return (
-    <header id="hero" className="main-header relative text-center text-white h-[clamp(15vh,45vw,83vh)] overflow-hidden mt-0">
+    <header id="hero" className="main-header relative text-center text-white h-[clamp(15vh,45vw,83vh)] overflow-hidden -mt-[clamp(1rem,2vw,2rem)]">
       <img 
         src={getImagePath("/images/1.jpeg")}
         alt="AI Revolution Background"
-        className="absolute top-0 left-0 w-full h-full object-cover brightness-70 z-[-1] select-none transition-[filter] duration-300 ease-in-out"
+        className="absolute top-0 left-0 w-full h-[calc(100%+clamp(1rem,2vw,2rem))] object-cover brightness-70 z-[-1] select-none transition-[filter] duration-300 ease-in-out"
         loading="eager"
         fetchPriority="high"
       />
@@ -63,7 +63,7 @@ export const Hero = () => {
         </h1>
 
         {/* Subtitle with language-specific elegant font */}
-        <h2
+        <h2 
           className="text-[7vw] tracking-wider font-bold" 
           style={{ 
             direction: getTextDirection(),
