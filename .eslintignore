@@ -1,0 +1,14 @@
+# Ignore Supabase functions (Deno-based code)
+supabase/
+supabase/**/*
+
+# Ignore build files
+dist/
+node_modules/
+
+# Ignore server code (Node.js)
+server/
+
+# Ignore SQL scripts
+sql/
+*.sql 

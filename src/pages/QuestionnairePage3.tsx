@@ -3,29 +3,80 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import QuestionnaireHeader from '@/components/QuestionnaireHeader';
 import { Button } from '@/components/ui/button';
 import QuestionnairePage3Content from '@/components/questionnaire/QuestionnairePage3';
-import { Answer } from '@/lib/types';
-import { supabase, createQuestionnaireTable } from '@/lib/supabase';
+import { Answer, ContactInfo } from '@/lib/types';
+import { getUserId, getUserProgress, saveQuestionnaireProgress, submitQuestionnaire } from '@/lib/supabase';
+import { toast } from 'sonner';
+import ContactField from '@/components/questionnaire/ContactField';
 
 const QuestionnairePage3 = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string>('');
+  const [contactInfo, setContactInfo] = useState<ContactInfo>({
+    email: '',
+    phone: '',
+    comments: ''
+  });
   
+  // טעינת תשובות קודמות אם יש
   useEffect(() => {
-    // Get answers from location state or redirect to first page
-    if (location.state?.answers) {
-      setAnswers(location.state.answers);
-    } else {
-      navigate('/questionnaire');
+    async function loadAnswers() {
+      setIsLoading(true);
+      
+      try {
+        // קבלת מזהה משתמש
+        const id = await getUserId();
+        setUserId(id);
+        
+        // בדיקה אם יש תשובות בלוקיישן סטייט
+        if (location.state?.answers) {
+          setAnswers(location.state.answers);
+          setIsLoading(false);
+          return;
+        }
+        
+        // ניסיון לטעון מהשרת
+        const { success, data, error } = await getUserProgress(id);
+        
+        if (success && data) {
+          // אם יש תשובות שמורות
+          if (data.answers && data.answers.length > 0) {
+            setAnswers(data.answers);
+            
+            // טעינת פרטי התקשרות אם קיימים
+            if (data.contact_info) {
+              setContactInfo(data.contact_info);
+            }
+          } else {
+            // אם אין תשובות, חזרה לעמוד הראשון
+            navigate('/questionnaire');
+            return;
+          }
+        } else if (error) {
+          console.error('Error loading answers:', error);
+          navigate('/questionnaire');
+          return;
+        }
+      } catch (error) {
+        console.error('Error initializing page 3:', error);
+        navigate('/questionnaire');
+        return;
+      } finally {
+        setIsLoading(false);
+      }
     }
     
-    // Scroll to top when page loads
+    loadAnswers();
+    
+    // גלילה לראש העמוד
     window.scrollTo(0, 0);
   }, [location, navigate]);
   
   const updateAnswers = (newAnswers: Answer[]) => {
-    // Replace answers with same questionId or add new ones
+    // החלפת תשובות קיימות או הוספת חדשות
     const updatedAnswers = [...answers];
     
     newAnswers.forEach(newAnswer => {
@@ -40,8 +91,30 @@ const QuestionnairePage3 = () => {
     setAnswers(updatedAnswers);
   };
   
+  const updateContactInfo = (newContactInfo: ContactInfo) => {
+    setContactInfo(newContactInfo);
+  };
+  
+  const validateContactInfo = (): boolean => {
+    // וידוא שיש אימייל ומספר טלפון תקינים
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^0\d{8,9}$/;
+    
+    if (!contactInfo.email || !emailRegex.test(contactInfo.email)) {
+      toast.error("אנא הזן/י כתובת אימייל תקינה");
+      return false;
+    }
+    
+    if (!contactInfo.phone || !phoneRegex.test(contactInfo.phone.replace(/[- ]/g, ''))) {
+      toast.error("אנא הזן/י מספר טלפון תקין (10 ספרות המתחיל ב-0)");
+      return false;
+    }
+    
+    return true;
+  };
+  
   const handleSubmit = async () => {
-    // Check if all required questions are answered
+    // בדיקה שכל השאלות הנדרשות נענו
     const requiredQuestions = [
       'future_vision', 'ethical_dilemma', 'inspiration_source', 
       'book_preference', 'challenge_response', 'learning_insight', 'adaptation'
@@ -52,71 +125,98 @@ const QuestionnairePage3 = () => {
     );
     
     if (!answered) {
-      alert("אנא ענה/י על כל השאלות לפני שתגיש/י");
+      toast.error("אנא ענה/י על כל השאלות לפני שתגיש/י");
       return;
     }
     
+    // בדיקת תקינות פרטי ההתקשרות
+    if (!validateContactInfo()) {
+      toast.error("יש למלא את כל שדות החובה");
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      // Ensure the table exists before inserting
-      await createQuestionnaireTable();
+      // שמירת התקדמות תחילה כגיבוי
+      await saveQuestionnaireProgress(userId, 3, answers, contactInfo);
       
-      // Format answers for database
-      const formattedAnswers = answers.reduce((acc, curr) => {
-        acc[curr.questionId] = curr.answer;
-        return acc;
-      }, {} as Record<string, string>);
+      // הגשת כל השאלון
+      const { success, error } = await submitQuestionnaire(userId, answers, contactInfo);
       
-      // Store in Supabase
-      const { error } = await supabase
-        .from('questionnaire_responses')
-        .insert([{
-          responses: formattedAnswers,
-          created_at: new Date().toISOString()
-        }]);
-        
-      if (error) throw error;
-      
-      alert("השאלון הוגש בהצלחה!");
-      navigate('/thank-you', { state: { fromQuestionnaire: true } });
-      
+      if (success) {
+        toast.success("השאלון הוגש בהצלחה!");
+        // מעבר לדף תודה עם ציון שהגענו מהשאלון והעברת שם המשתמש
+        navigate('/thank-you', { 
+          state: { 
+            fromQuestionnaire: true,
+            contactName: contactInfo.name || ''
+          } 
+        });
+      } else {
+        toast.error(`שגיאה בהגשת השאלון: ${error}`);
+        setIsSubmitting(false);
+      }
     } catch (error) {
       console.error('Error submitting questionnaire:', error);
-      alert("אירעה שגיאה בהגשת השאלון. אנא נסה/י שוב");
-    } finally {
+      toast.error("שגיאה בהגשת השאלון, נסה שנית מאוחר יותר");
       setIsSubmitting(false);
     }
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-blue-50">
-      <QuestionnaireHeader 
-        mainTitle="שאלון לנרשמי הקורס" 
-        pageTitle="שאלות עם ערך מוסף" 
-      />
-      
-      <div className="container mx-auto py-12 px-4 max-w-4xl">
-        <QuestionnairePage3Content answers={answers} updateAnswers={updateAnswers} />
-        
-        <div className="mt-10 flex justify-between">
-          <Button
-            onClick={() => navigate('/questionnaire/page2', { state: { answers } })}
-            variant="outline"
-            className="border-blue-600 text-blue-700 hover:bg-blue-50"
-          >
-            חזרה לשלב הקודם
-          </Button>
-          
-          <Button
-            onClick={handleSubmit}
-            className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-2.5 px-8 rounded-xl hover:opacity-90 transition-opacity duration-300 font-bold text-base"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? '...מגיש' : 'הגש שאלון'}
-          </Button>
+    <div className="min-h-screen bg-slate-50">
+      {isLoading ? (
+        <div className="flex h-screen w-full items-center justify-center">
+          <div className="loader"></div>
         </div>
-      </div>
+      ) : (
+        <>
+          <QuestionnaireHeader 
+            mainTitle="שאלון התאמה לתכנית הבינה המלאכותית" 
+            pageTitle="שאלון ערכי מוסף ופרטי קשר" 
+            currentPage={3}
+            totalPages={3}
+          />
+          
+          <div className="container mx-auto px-4 py-10 max-w-4xl">
+            <QuestionnairePage3Content 
+              answers={answers} 
+              updateAnswers={updateAnswers} 
+            />
+            
+            <div className="my-12">
+              <h2 className="text-xl font-semibold text-blue-900 mb-4 text-right">
+                פרטי התקשרות
+              </h2>
+              <p className="text-gray-600 mb-6 text-right">
+                אנא מלא/י את פרטי ההתקשרות שלך כדי שנוכל ליצור איתך קשר בנוגע לתוצאות השאלון
+              </p>
+              <ContactField 
+                contactInfo={contactInfo} 
+                onChange={updateContactInfo} 
+              />
+            </div>
+            
+            <div className="flex justify-between mt-10">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/questionnaire/page2')}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                חזרה לעמוד הקודם
+              </Button>
+              <Button 
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
+              >
+                {isSubmitting ? 'שולח...' : 'הגשת השאלון'}
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

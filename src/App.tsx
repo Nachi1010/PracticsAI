@@ -1,52 +1,41 @@
-import { Toaster } from "@/components/ui/toaster";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { HashRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import ThankYou from "./pages/ThankYou";
-import Questionnaire from "./pages/Questionnaire";
-import QuestionnairePage2 from "./pages/QuestionnairePage2";
-import QuestionnairePage3 from "./pages/QuestionnairePage3";
-import "@/components/ui/cta-button.css";
-import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
-import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel";
-import "./App.css"; // ייבוא קובץ ה-CSS העיקרי
-import { useEffect } from "react";
-import { smoothScrollTo } from "./lib/scrollUtils";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import ThankYou from './pages/ThankYou';
+import Questionnaire from './pages/Questionnaire';
+import QuestionnairePage2 from './pages/QuestionnairePage2';
+import QuestionnairePage3 from './pages/QuestionnairePage3';
+import { Toaster } from 'sonner';
+import { LanguageProvider } from './contexts/LanguageContext';
+import { useEffect } from 'react';
+import './App.css';
 
-const queryClient = new QueryClient();
-
-// Helper function to handle global hash fragment clicks for smooth scrolling
-const useHashFragmentHandler = () => {
+// פונקציה להתמודדות עם ניתוב עמוק ב-SPA
+const useSpaRouting = () => {
   useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      // Check if the clicked element is an anchor with a hash fragment
-      const target = e.target as HTMLElement;
-      const anchor = target.closest('a');
-      
-      if (anchor && anchor.hash && anchor.hash.startsWith('#')) {
-        // Get the ID without the # symbol
-        const id = anchor.hash.substring(1);
-        
-        // If there's an element with this ID on the page
-        if (id && document.getElementById(id)) {
-          e.preventDefault();
-          smoothScrollTo(id);
-        }
-      }
-    };
+    // קוד להתמודדות עם ניתוב עמוק בגיטהאב פייג'ס
+    const redirectScript = document.getElementById('redirect-script');
+    if (redirectScript) {
+      return; // הסקריפט כבר קיים
+    }
 
-    // Add click event listener to the document
-    document.addEventListener('click', handleClick);
-    
-    return () => {
-      document.removeEventListener('click', handleClick);
-    };
+    // הוספת סקריפט שמטפל בניתוב
+    const script = document.createElement('script');
+    script.id = 'redirect-script';
+    script.innerHTML = `
+      (function() {
+        const redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    `;
+    document.head.appendChild(script);
   }, []);
 };
 
-// Helper function to handle image paths with the correct base URL
+// פונקציה לקבלת נתיב תמונה נכון
 export const getImagePath = (path: string): string => {
   // הסר / בתחילת הנתיב אם קיים
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
@@ -55,30 +44,29 @@ export const getImagePath = (path: string): string => {
   return `/${cleanPath}`;
 };
 
-const App = () => {
-  // Use our custom hook to handle hash fragment clicks
-  useHashFragmentHandler();
-  
+function App() {
+  // שימוש בפונקציה לניתוב עמוק
+  useSpaRouting();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <AccessibilityProvider>
-          <Toaster />
-          <AccessibilityPanel />
-          <HashRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/thank-you" element={<ThankYou />} />
-              <Route path="/questionnaire" element={<Questionnaire />} />
-              <Route path="/questionnaire/page2" element={<QuestionnairePage2 />} />
-              <Route path="/questionnaire/page3" element={<QuestionnairePage3 />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </HashRouter>
-        </AccessibilityProvider>
-      </LanguageProvider>
-    </QueryClientProvider>
+    <LanguageProvider>
+      <Toaster position="top-center" richColors />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          
+          {/* ניתובי שאלון */}
+          <Route path="/questionnaire" element={<Questionnaire />} />
+          <Route path="/questionnaire/page2" element={<QuestionnairePage2 />} />
+          <Route path="/questionnaire/page3" element={<QuestionnairePage3 />} />
+          
+          {/* דף 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </LanguageProvider>
   );
-};
+}
 
 export default App;

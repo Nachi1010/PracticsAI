@@ -6,6 +6,7 @@ const ThankYou = () => {
   const { currentLang } = useLanguage();
   const location = useLocation();
   const isQuestionnaire = location.search.includes('questionnaire=true') || location.state?.fromQuestionnaire;
+  const contactName = location.state?.contactName || '';
 
   useEffect(() => {
     // Scroll to top when component mounts
@@ -18,11 +19,11 @@ const ThankYou = () => {
         ? "Thank You for Completing the Questionnaire!" 
         : "Thank You for Registering!",
       subtitle: isQuestionnaire 
-        ? "Your responses have been submitted successfully." 
-        : "We're excited to have you on board.",
+        ? contactName ? `${contactName}, your responses have been submitted successfully.` : "Your responses have been submitted successfully." 
+        : "We're excited to have you join our AI program.",
       message: isQuestionnaire
-        ? "Our team will review your responses and use them to better tailor the course to your needs."
-        : "Our team will contact you shortly with more information about your AI journey.",
+        ? "Our team will review your responses and contact you shortly with personalized recommendations for your AI journey."
+        : "Our team will contact you shortly with more information about our AI program and how to get started.",
       homeLink: "Return to Home"
     },
     he: {
@@ -30,11 +31,11 @@ const ThankYou = () => {
         ? "תודה על מילוי השאלון!" 
         : "תודה על ההרשמה!",
       subtitle: isQuestionnaire 
-        ? "התשובות שלך נשלחו בהצלחה."
-        : "אנחנו נרגשים לקבל אתכם.",
+        ? contactName ? `${contactName}, התשובות שלך נשלחו בהצלחה.` : "התשובות שלך נשלחו בהצלחה."
+        : "אנחנו נרגשים לקבל אותך לתכנית ה-AI שלנו.",
       message: isQuestionnaire
-        ? "הצוות שלנו יבחן את תשובותיך וישתמש בהן כדי להתאים טוב יותר את הקורס לצרכים שלך."
-        : "צוות המומחים שלנו יצור איתכם קשר בקרוב עם מידע נוסף על המסע שלכם בעולם הבינה המלאכותית.",
+        ? "הצוות שלנו יבחן את תשובותיך ויצור איתך קשר בקרוב עם המלצות מותאמות אישית למסע שלך בעולם הבינה המלאכותית."
+        : "צוות המומחים שלנו יצור איתך קשר בקרוב עם מידע נוסף על תכנית ה-AI שלנו וכיצד להתחיל.",
       homeLink: "חזרה לדף הבית"
     }
   };
@@ -42,21 +43,21 @@ const ThankYou = () => {
   const t = texts[currentLang];
 
   return (
-    <div className="min-h-screen bg-dark-darker flex items-center justify-center">
-      <div className="container max-w-md mx-auto px-4">
-        <div className="form-container p-8 text-center">
-          <div className="mb-6">
-            <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-slate-900 flex items-center justify-center py-20">
+      <div className="container max-w-lg mx-auto px-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="mb-8">
+            <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold mb-2 highlight-text">{t.title}</h1>
-            <p className="text-xl mb-4">{t.subtitle}</p>
-            <p className="description-text mb-8">{t.message}</p>
+            <h1 className="text-3xl font-bold mb-4 text-blue-900">{t.title}</h1>
+            <p className="text-xl mb-4 text-gray-700">{t.subtitle}</p>
+            <p className="text-gray-600 mb-10 max-w-md mx-auto">{t.message}</p>
             <Link 
               to="/"
-              className="premium-button inline-block px-6 py-3 text-lg"
+              className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 py-3 rounded-lg text-lg font-medium hover:shadow-lg transition-all duration-300 hover:translate-y-[-2px] active:translate-y-[0px]"
             >
               {t.homeLink}
             </Link>
