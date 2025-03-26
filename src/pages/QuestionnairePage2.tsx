@@ -7,6 +7,9 @@ import { Answer } from '@/lib/types';
 import { getUserId, getUserProgress, saveQuestionnaireProgress } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+// מפתח עבור שמירת התשובות באחסון המקומי
+const ANSWERS_STORAGE_KEY = 'practicsai_questionnaire_answers';
+
 const QuestionnairePage2 = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,31 +31,51 @@ const QuestionnairePage2 = () => {
         // בדיקה אם יש תשובות בלוקיישן סטייט
         if (location.state?.answers) {
           setAnswers(location.state.answers);
+          // שמירה באחסון מקומי
+          localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(location.state.answers));
           setIsLoading(false);
           return;
         }
         
-        // ניסיון לטעון מהשרת
-        const { success, data, error } = await getUserProgress(id);
-        
-        if (success && data) {
-          // אם יש תשובות שמורות
-          if (data.answers && data.answers.length > 0) {
-            setAnswers(data.answers);
-          } else {
-            // אם אין תשובות, חזרה לעמוד הראשון
-            navigate('/questionnaire');
-            return;
+        // ניסיון לטעון מאחסון מקומי
+        const savedAnswers = localStorage.getItem(ANSWERS_STORAGE_KEY);
+        if (savedAnswers) {
+          try {
+            const parsedAnswers = JSON.parse(savedAnswers);
+            if (Array.isArray(parsedAnswers)) {
+              setAnswers(parsedAnswers);
+              setIsLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error('Error parsing saved answers:', e);
           }
-        } else if (error) {
-          console.error('Error loading answers:', error);
-          navigate('/questionnaire');
-          return;
         }
+        
+        // ניסיון לטעון מהשרת אם אין באחסון מקומי
+        try {
+          const { success, data, error } = await getUserProgress(id);
+          
+          if (success && data) {
+            // אם יש תשובות שמורות
+            if (data.answers && data.answers.length > 0) {
+              setAnswers(data.answers);
+              // שמירה באחסון מקומי
+              localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(data.answers));
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch (serverError) {
+          console.error('Error loading from server:', serverError);
+        }
+        
+        // אם לא מצאנו תשובות בשום מקום, חזור לעמוד הראשון
+        navigate('/questionnaire');
       } catch (error) {
         console.error('Error initializing page 2:', error);
+        // אם יש שגיאה בכל זאת ננסה לעבור לעמוד הראשון
         navigate('/questionnaire');
-        return;
       } finally {
         setIsLoading(false);
       }
@@ -78,6 +101,9 @@ const QuestionnairePage2 = () => {
     });
     
     setAnswers(updatedAnswers);
+    
+    // שמירה באחסון מקומי בכל עדכון
+    localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(updatedAnswers));
   };
   
   const handleSubmit = async () => {
@@ -86,11 +112,21 @@ const QuestionnairePage2 = () => {
     setIsSubmitting(true);
     
     try {
-      const userId = await getUserId();
-      const { success, error } = await saveQuestionnaireProgress(userId, 2, answers);
+      // שמירה באחסון מקומי לפני ניסיון שמירה בשרת
+      localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(answers));
       
-      if (!success || error) {
-        throw new Error(error || 'אירעה שגיאה בשמירת התשובות');
+      // ניסיון שמירה בשרת
+      try {
+        const userId = await getUserId();
+        const { success, error } = await saveQuestionnaireProgress(userId, 2, answers);
+        
+        if (!success || error) {
+          console.warn('Server save warning:', error);
+          // ממשיכים גם אם יש שגיאה בשמירה בשרת כי שמרנו מקומית
+        }
+      } catch (serverError) {
+        console.error('Server save error:', serverError);
+        // ממשיכים בכל מקרה כי יש לנו שמירה מקומית
       }
       
       // ניווט לעמוד הבא
@@ -104,7 +140,7 @@ const QuestionnairePage2 = () => {
   };
   
   const handleBack = () => {
-    navigate('/questionnaire/page/1');
+    navigate('/questionnaire/page/1', { state: { answers } });
   };
   
   return (

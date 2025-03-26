@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, HashRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, HashRouter, Navigate } from 'react-router-dom';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import ThankYou from './pages/ThankYou';
@@ -48,6 +48,10 @@ function App() {
   // שימוש בפונקציה לניתוב עמוק
   useSpaRouting();
 
+  // בדיקה האם יש התחלה ישירה של השאלון
+  const isQuestionnaireURL = window.location.hash.startsWith('#/questionnaire') || 
+                            window.location.pathname.includes('/questionnaire');
+
   return (
     <LanguageProvider>
       <Toaster position="top-center" richColors />
@@ -58,6 +62,10 @@ function App() {
           
           {/* עמוד תודה לאחר הרשמה */}
           <Route path="/thank-you" element={<ThankYou />} />
+          
+          {/* נתיב ישיר לדף השאלון - עבור לינקים ישירים */}
+          <Route path="/form" element={<Navigate to="/questionnaire" replace />} />
+          <Route path="/survey" element={<Navigate to="/questionnaire" replace />} />
           
           {/* מסלול שאלון עם כתובות קבועות ואחידות */}
           <Route path="/questionnaire" element={<Questionnaire />} />

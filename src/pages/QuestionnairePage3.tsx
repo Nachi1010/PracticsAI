@@ -8,6 +8,10 @@ import { getUserId, getUserProgress, saveQuestionnaireProgress, submitQuestionna
 import { toast } from 'sonner';
 import ContactField from '@/components/questionnaire/ContactField';
 
+// מפתחות לאחסון מקומי
+const ANSWERS_STORAGE_KEY = 'practicsai_questionnaire_answers';
+const CONTACT_STORAGE_KEY = 'practicsai_contact_info';
+
 const QuestionnairePage3 = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,36 +38,79 @@ const QuestionnairePage3 = () => {
         // בדיקה אם יש תשובות בלוקיישן סטייט
         if (location.state?.answers) {
           setAnswers(location.state.answers);
+          // שמירה באחסון מקומי
+          localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(location.state.answers));
+          
+          // בדיקה אם יש פרטי קשר מאוחסנים
+          const savedContact = localStorage.getItem(CONTACT_STORAGE_KEY);
+          if (savedContact) {
+            try {
+              setContactInfo(JSON.parse(savedContact));
+            } catch (e) {
+              console.error('Error parsing saved contact info:', e);
+            }
+          }
+          
           setIsLoading(false);
           return;
         }
         
-        // ניסיון לטעון מהשרת
-        const { success, data, error } = await getUserProgress(id);
-        
-        if (success && data) {
-          // אם יש תשובות שמורות
-          if (data.answers && data.answers.length > 0) {
-            setAnswers(data.answers);
-            
-            // טעינת פרטי התקשרות אם קיימים
-            if (data.contact_info) {
-              setContactInfo(data.contact_info);
+        // ניסיון לטעון מאחסון מקומי
+        const savedAnswers = localStorage.getItem(ANSWERS_STORAGE_KEY);
+        if (savedAnswers) {
+          try {
+            const parsedAnswers = JSON.parse(savedAnswers);
+            if (Array.isArray(parsedAnswers)) {
+              setAnswers(parsedAnswers);
+              
+              // בדיקה אם יש פרטי קשר מאוחסנים
+              const savedContact = localStorage.getItem(CONTACT_STORAGE_KEY);
+              if (savedContact) {
+                try {
+                  setContactInfo(JSON.parse(savedContact));
+                } catch (e) {
+                  console.error('Error parsing saved contact info:', e);
+                }
+              }
+              
+              setIsLoading(false);
+              return;
             }
-          } else {
-            // אם אין תשובות, חזרה לעמוד הראשון
-            navigate('/questionnaire');
-            return;
+          } catch (e) {
+            console.error('Error parsing saved answers:', e);
           }
-        } else if (error) {
-          console.error('Error loading answers:', error);
-          navigate('/questionnaire');
-          return;
         }
+        
+        // ניסיון לטעון מהשרת אם אין באחסון מקומי
+        try {
+          const { success, data, error } = await getUserProgress(id);
+          
+          if (success && data) {
+            // אם יש תשובות שמורות
+            if (data.answers && data.answers.length > 0) {
+              setAnswers(data.answers);
+              // שמירה באחסון מקומי
+              localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(data.answers));
+              
+              // טעינת פרטי התקשרות אם קיימים
+              if (data.contact_info) {
+                setContactInfo(data.contact_info);
+                localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(data.contact_info));
+              }
+              
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch (serverError) {
+          console.error('Error loading from server:', serverError);
+        }
+        
+        // אם לא מצאנו תשובות בשום מקום, חזור לעמוד הראשון
+        navigate('/questionnaire');
       } catch (error) {
         console.error('Error initializing page 3:', error);
         navigate('/questionnaire');
-        return;
       } finally {
         setIsLoading(false);
       }
@@ -89,10 +136,16 @@ const QuestionnairePage3 = () => {
     });
     
     setAnswers(updatedAnswers);
+    
+    // שמירה באחסון מקומי בכל עדכון
+    localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(updatedAnswers));
   };
   
   const updateContactInfo = (newContactInfo: ContactInfo) => {
     setContactInfo(newContactInfo);
+    
+    // שמירת פרטי הקשר באחסון מקומי
+    localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(newContactInfo));
   };
   
   const validateContactInfo = (): boolean => {
@@ -116,34 +169,65 @@ const QuestionnairePage3 = () => {
   const handleSubmit = async () => {
     if (isSubmitting) return;
     
+    // בדיקת תקינות פרטי הקשר
+    if (!validateContactInfo()) {
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      const userId = await getUserId();
+      // שמירה באחסון מקומי
+      localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(answers));
+      localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(contactInfo));
       
-      // שמירת התקדמות של העמוד האחרון
-      const { success: progressSuccess, error: progressError } = 
-        await saveQuestionnaireProgress(userId, 3, answers, contactInfo);
+      let submitSuccessful = false;
       
-      if (!progressSuccess || progressError) {
-        throw new Error(progressError || 'אירעה שגיאה בשמירת התשובות');
+      // ניסיון שמירה בשרת
+      try {
+        const userId = await getUserId();
+        
+        // שמירת התקדמות של העמוד האחרון
+        const { success: progressSuccess, error: progressError } = 
+          await saveQuestionnaireProgress(userId, 3, answers, contactInfo);
+        
+        if (!progressSuccess || progressError) {
+          console.warn('Error saving progress to server:', progressError);
+        }
+        
+        // הגשה סופית של כל השאלון
+        const { success: submitSuccess, error: submitError } = 
+          await submitQuestionnaire(userId, answers, contactInfo);
+        
+        if (!submitSuccess || submitError) {
+          console.warn('Error submitting questionnaire to server:', submitError);
+        } else {
+          submitSuccessful = true;
+        }
+      } catch (serverError) {
+        console.error('Server communication error:', serverError);
+        // ממשיכים למרות השגיאה כי שמרנו את הנתונים ב-localStorage
       }
       
-      // הגשה סופית של כל השאלון
-      const { success: submitSuccess, error: submitError } = 
-        await submitQuestionnaire(userId, answers, contactInfo);
+      // הצגת הודעת הצלחה למשתמש
+      if (submitSuccessful) {
+        toast.success('השאלון הוגש בהצלחה! תודה על השתתפותך');
+      } else {
+        toast.warning('השאלון נשמר מקומית אך ייתכן שלא הוגש לשרת בהצלחה. נוכל לקבל את פרטיך ולפנות אליך בהמשך.');
+      }
       
-      if (!submitSuccess || submitError) {
-        throw new Error(submitError || 'אירעה שגיאה בהגשת השאלון');
+      // מחיקת הנתונים מהאחסון המקומי לאחר הגשה מוצלחת
+      if (submitSuccessful) {
+        localStorage.removeItem(ANSWERS_STORAGE_KEY);
+        localStorage.removeItem(CONTACT_STORAGE_KEY);
       }
       
       // ניווט לדף תודה
-      toast.success('השאלון הוגש בהצלחה! תודה על השתתפותך');
       setTimeout(() => {
-        navigate('/thank-you', { state: { fromQuestionnaire: true } });
+        navigate('/thank-you', { state: { fromQuestionnaire: true, contact: contactInfo } });
       }, 1500);
     } catch (error) {
-      console.error('Error submitting questionnaire:', error);
+      console.error('Error in submission process:', error);
       toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
     } finally {
       setIsSubmitting(false);
@@ -152,7 +236,7 @@ const QuestionnairePage3 = () => {
   
   // חזרה לעמוד הקודם
   const handleBack = () => {
-    navigate('/questionnaire/page/2');
+    navigate('/questionnaire/page/2', { state: { answers } });
   };
   
   return (

@@ -7,6 +7,9 @@ import { getUserId, getUserProgress, saveQuestionnaireProgress } from '@/lib/sup
 import { Answer, UserStatus } from '@/lib/types';
 import { toast } from 'sonner';
 
+// מפתח עבור שמירת התשובות באחסון המקומי
+const ANSWERS_STORAGE_KEY = 'practicsai_questionnaire_answers';
+
 const Questionnaire = () => {
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -24,6 +27,22 @@ const Questionnaire = () => {
       setIsLoading(true);
       
       try {
+        // ניסיון לטעון תשובות מאחסון מקומי תחילה
+        const savedAnswers = localStorage.getItem(ANSWERS_STORAGE_KEY);
+        if (savedAnswers) {
+          try {
+            const parsedAnswers = JSON.parse(savedAnswers);
+            if (Array.isArray(parsedAnswers)) {
+              setAnswers(parsedAnswers);
+              setIsLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error('Error parsing saved answers:', e);
+            // המשך לטעינה מהשרת אם יש בעיה בפרסור
+          }
+        }
+        
         // קבלת מזהה משתמש
         const id = await getUserId();
         setUserId(id);
@@ -43,6 +62,8 @@ const Questionnaire = () => {
             // טעינת תשובות קודמות אם קיימות
             if (data.answers && data.answers.length > 0) {
               setAnswers(data.answers);
+              // שמירה באחסון מקומי
+              localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(data.answers));
             }
           }
         } else if (error) {
@@ -75,6 +96,9 @@ const Questionnaire = () => {
     });
     
     setAnswers(updatedAnswers);
+    
+    // שמירה באחסון מקומי בכל עדכון
+    localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(updatedAnswers));
   };
   
   const handleSubmit = async () => {
@@ -83,17 +107,27 @@ const Questionnaire = () => {
     setIsSubmitting(true);
     
     try {
-      const userId = await getUserId();
-      const { success, error } = await saveQuestionnaireProgress(userId, 1, answers);
+      // שמירה באחסון מקומי לפני ניסיון שמירה בשרת
+      localStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(answers));
       
-      if (!success || error) {
-        throw new Error(error || 'אירעה שגיאה בשמירת התשובות');
+      // ניסיון שמירה בשרת
+      try {
+        const userId = await getUserId();
+        const { success, error } = await saveQuestionnaireProgress(userId, 1, answers);
+        
+        if (!success || error) {
+          console.warn('Server save warning:', error);
+          // ממשיכים גם אם יש שגיאה בשמירה בשרת כי שמרנו מקומית
+        }
+      } catch (serverError) {
+        console.error('Server save error:', serverError);
+        // ממשיכים בכל מקרה כי יש לנו שמירה מקומית
       }
       
-      // ניווט לעמוד הבא
+      // ניווט לעמוד הבא - שימוש בנתיב של HashRouter
       navigate('/questionnaire/page/2', { state: { answers } });
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error in form submission:', error);
       toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
     } finally {
       setIsSubmitting(false);
