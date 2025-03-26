@@ -37,13 +37,23 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
 
   const t = translations[currentLang];
 
+  // מנגנון יציבות עבור תצוגת מובייל ומניעת החלל הריק
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const transitionDuration = isMobile ? '300ms' : '500ms';
+
   return (
     <header
-      className={`fixed top-0 w-full z-50 transition-all duration-700 ease-in-out backdrop-blur-md
-        ${scrolled ? 'h-[clamp(3rem,4vw,4rem)] bg-slate-800/85' : 'h-[clamp(4rem,6vw,6rem)] bg-slate-800'}`}
+      className={`fixed top-0 w-full z-50 backdrop-blur-md
+        ${scrolled ? 'bg-slate-800/85' : 'bg-slate-800'}`}
       role="banner"
       style={{ 
-        transform: 'translateY(0)' 
+        transform: 'translateY(0)',
+        transition: `all ${transitionDuration} ease-in-out`,
+        height: scrolled ? 'clamp(3rem,4vw,4rem)' : 'clamp(4rem,6vw,6rem)',
+        minHeight: isMobile ? '3rem' : 'auto',
+        willChange: 'height',
+        display: 'flex',
+        alignItems: 'center'
       }}
     >
       <div className="container mx-auto flex items-center justify-between h-full">
@@ -51,12 +61,23 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
           <Button
             variant="ghost"
             size="icon"
-            className={`hover:bg-dark-light/20 text-high-contrast transition-all duration-700
-              ${scrolled ? 'h-10 w-10' : 'h-12 w-12'}`}
+            className={`hover:bg-dark-light/20 text-high-contrast`}
+            style={{
+              transition: `all ${transitionDuration} ease-in-out`,
+              height: scrolled ? '2.5rem' : '3rem',
+              width: scrolled ? '2.5rem' : '3rem',
+            }}
             onClick={onMenuToggle}
             aria-label={t.menuLabel}
           >
-            <Menu className={`transition-all duration-700 ${scrolled ? 'h-6 w-6' : 'h-8 w-8'}`} aria-hidden="true" />
+            <Menu 
+              style={{
+                transition: `all ${transitionDuration} ease-in-out`,
+                height: scrolled ? '1.5rem' : '2rem',
+                width: scrolled ? '1.5rem' : '2rem',
+              }}
+              aria-hidden="true" 
+            />
           </Button>
           <Link 
             to="/" 
@@ -66,7 +87,11 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             <img 
               src={getImagePath("/images/2.png")}
               alt="Pixel"
-              className={`w-auto transition-all duration-700 ${scrolled ? 'h-8' : 'h-12'}`}
+              style={{
+                width: 'auto',
+                transition: `all ${transitionDuration} ease-in-out`,
+                height: scrolled ? '2rem' : '3rem'
+              }}
             />
           </Link>
         </div>
