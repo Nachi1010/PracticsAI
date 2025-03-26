@@ -37,44 +37,45 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
 
   const t = translations[currentLang];
 
-  // מנגנון יציבות עבור תצוגת מובייל ומניעת החלל הריק
+  // הגדרות קבועות וערכים מדויקים עבור ההידר
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const transitionDuration = isMobile ? '300ms' : '500ms';
-
+  const transitionDuration = "300ms"; // מהירות אחידה בכל סוגי המכשירים
+  const headerHeight = scrolled ? '3rem' : '4rem'; // גבהים ספציפיים ולא התקנים יחסיים
+  
   return (
     <header
-      className={`fixed top-0 w-full z-50 backdrop-blur-md
-        ${scrolled ? 'bg-slate-800/85' : 'bg-slate-800'}`}
+      className="fixed top-0 left-0 right-0 w-full z-50 backdrop-blur-md"
       role="banner"
       style={{ 
-        transform: 'translateY(0)',
-        transition: `all ${transitionDuration} ease-in-out`,
-        height: scrolled ? 'clamp(3rem,4vw,4rem)' : 'clamp(4rem,6vw,6rem)',
-        minHeight: isMobile ? '3rem' : 'auto',
-        willChange: 'height',
+        transition: `all ${transitionDuration} ease-out`,
+        height: headerHeight,
+        backgroundColor: scrolled ? 'rgba(30, 41, 59, 0.9)' : 'rgb(30, 41, 59)',
+        willChange: 'transform, height, background-color',
+        transform: 'translateZ(0)',
         display: 'flex',
-        alignItems: 'center'
+        alignItems: 'center',
+        borderBottom: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : 'none'
       }}
     >
-      <div className="container mx-auto flex items-center justify-between h-full">
+      <div className="container mx-auto px-4 flex items-center justify-between h-full">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className={`hover:bg-dark-light/20 text-high-contrast`}
+            className="hover:bg-dark-light/20 text-high-contrast"
             style={{
-              transition: `all ${transitionDuration} ease-in-out`,
-              height: scrolled ? '2.5rem' : '3rem',
-              width: scrolled ? '2.5rem' : '3rem',
+              transition: `all ${transitionDuration} ease-out`,
+              height: scrolled ? '2.25rem' : '2.75rem',
+              width: scrolled ? '2.25rem' : '2.75rem',
             }}
             onClick={onMenuToggle}
             aria-label={t.menuLabel}
           >
             <Menu 
               style={{
-                transition: `all ${transitionDuration} ease-in-out`,
-                height: scrolled ? '1.5rem' : '2rem',
-                width: scrolled ? '1.5rem' : '2rem',
+                transition: `all ${transitionDuration} ease-out`,
+                height: scrolled ? '1.25rem' : '1.5rem',
+                width: scrolled ? '1.25rem' : '1.5rem',
               }}
               aria-hidden="true" 
             />
@@ -89,8 +90,8 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
               alt="Pixel"
               style={{
                 width: 'auto',
-                transition: `all ${transitionDuration} ease-in-out`,
-                height: scrolled ? '2rem' : '3rem'
+                transition: `all ${transitionDuration} ease-out`,
+                height: scrolled ? '1.75rem' : '2.25rem'
               }}
             />
           </Link>
