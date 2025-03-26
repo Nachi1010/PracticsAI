@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getImagePath } from "@/App";
 
 // טופס רישום עם עיצוב מותאם ולוגיקה משופרת
 export const Registration = () => {
@@ -52,7 +53,7 @@ export const Registration = () => {
       loading: "Processing..."
     },
     he: {
-      title: "הגישו מועמדות לתכנית הגיוס הייחודית שלנו",
+      title: "הגישו מועמדות לתכנית",
       subtitle: "רוכשים משרה נחשקת ומומחיות ב-AI",
       namePlaceholder: "שם מלא",
       idPlaceholder: "0-0000000-0",
@@ -176,28 +177,39 @@ export const Registration = () => {
   return (
     <section 
       id="registration-form"
-      className="py-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-gray-800"
+      className="py-10 md:py-14 min-h-screen flex items-center justify-center relative"
       style={{ direction }}
     >
-      <div className="w-full max-w-md px-6">
+      {/* תמונת רקע עם שכבת כיסוי */}
+      <div className="absolute inset-0 z-0">
+        <img 
+          src={getImagePath("/images/D.jpeg")} 
+          alt="Background" 
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 to-gray-800/90"></div>
+      </div>
+      
+      {/* תוכן הטופס */}
+      <div className="w-full max-w-xs sm:max-w-sm px-3 relative z-10">
         {/* כרטיס הטופס */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
           {/* כותרת */}
-          <div className="p-8 bg-gradient-to-r from-slate-700 to-slate-800 text-white">
-            <h2 className="text-3xl font-bold tracking-tight mb-2">
+          <div className="p-4 md:p-5 bg-gradient-to-r from-slate-700 to-slate-800 text-white">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight mb-1">
               {t.title}
             </h2>
-            <p className="text-white/80">
+            <p className="text-white/80 text-xs md:text-sm">
               {t.subtitle}
             </p>
           </div>
           
           {/* גוף הטופס */}
-          <div className="p-8">
-            <form onSubmit={onSubmit} className="space-y-5">
+          <div className="p-4 md:p-5">
+            <form onSubmit={onSubmit} className="space-y-3">
               {/* שם */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.nameLabel}
                 </label>
                 <input
@@ -206,13 +218,13 @@ export const Registration = () => {
                   placeholder={t.namePlaceholder}
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors text-sm"
                 />
               </div>
 
               {/* מספר זהות */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.idLabel}
                 </label>
                 <input
@@ -221,13 +233,13 @@ export const Registration = () => {
                   placeholder={t.idPlaceholder}
                   value={formData.id}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors text-sm"
                 />
               </div>
 
               {/* אימייל */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.emailLabel}
                 </label>
                 <input
@@ -236,13 +248,13 @@ export const Registration = () => {
                   placeholder={t.emailPlaceholder}
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors text-sm"
                 />
               </div>
 
               {/* טלפון */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
                   {t.phoneLabel}
                 </label>
                 <input
@@ -252,26 +264,28 @@ export const Registration = () => {
                   value={formData.phone}
                   style={{ direction }}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors"
+                  className="w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors text-sm"
                 />
               </div>
 
-              {/* כפתור שליחה */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 px-6 mt-6 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white font-semibold rounded-lg shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 disabled:opacity-70"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    {t.loading}
-                  </span>
-                ) : t.submitButton}
-              </button>
+              {/* כפתור שליחה בעיצוב אלגנטי ומקצועי */}
+              <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded transition-colors duration-200 shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-50 disabled:opacity-70"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t.loading}
+                    </span>
+                  ) : t.submitButton}
+                </button>
+              </div>
             </form>
           </div>
         </div>

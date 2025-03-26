@@ -1,9 +1,17 @@
 import { ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { smoothScrollTo } from "@/lib/scrollUtils";
+import { useEffect, useState } from "react";
+import "@/components/ui/cta-button.css";
 
 export const CTA = () => {
   const { currentLang, getTextDirection } = useLanguage();
+  const [lang, setLang] = useState(currentLang);
+  
+  // Force re-render when language changes
+  useEffect(() => {
+    setLang(currentLang);
+  }, [currentLang]);
   
   const content = {
     en: {
@@ -12,13 +20,13 @@ export const CTA = () => {
       button: "Enroll Now"
     },
     he: {
-      title: "מוכנים להתחיל בחיים חדשים?",
+      title: "מוכנים להתחיל חיים חדשים?",
       subtitle: "הרשמו לתוכנית ה-AI היחידה מסוגה בעולם",
       button: "הגשת מועמדות"
     }
   };
   
-  const textContent = content[currentLang];
+  const textContent = content[lang];
     
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm py-3 z-40">
