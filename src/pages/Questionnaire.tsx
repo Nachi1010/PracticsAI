@@ -77,37 +77,24 @@ const Questionnaire = () => {
     setAnswers(updatedAnswers);
   };
   
-  const handleContinue = async () => {
-    // בדיקה שכל השאלות הנדרשות נענו
-    const requiredQuestions = [
-      'experience_level', 'learning_goal', 'tech_background', 
-      'time_commitment', 'learning_style', 'project_interest', 'challenges'
-    ];
-    
-    const answered = requiredQuestions.every(qId => 
-      answers.some(a => a.questionId === qId)
-    );
-    
-    if (!answered) {
-      toast.error("אנא ענה/י על כל השאלות לפני שתמשיך/י");
-      return;
-    }
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     
     try {
-      // שמירת התקדמות במסד הנתונים
+      const userId = await getUserId();
       const { success, error } = await saveQuestionnaireProgress(userId, 1, answers);
       
-      if (!success) {
-        throw new Error(error || 'שגיאה בשמירת ההתקדמות');
+      if (!success || error) {
+        throw new Error(error || 'אירעה שגיאה בשמירת התשובות');
       }
       
-      // מעבר לדף הבא
-      navigate('/questionnaire/page2', { state: { answers } });
+      // ניווט לעמוד הבא
+      navigate('/questionnaire/page/2', { state: { answers } });
     } catch (error) {
-      console.error('Error saving progress:', error);
-      toast.error("אירעה שגיאה בשמירת ההתקדמות. אנא נסה/י שוב.");
+      console.error('Error submitting form:', error);
+      toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
     } finally {
       setIsSubmitting(false);
     }
@@ -142,7 +129,7 @@ const Questionnaire = () => {
                 חזרה לדף הבית
               </Button>
               <Button 
-                onClick={handleContinue}
+                onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
               >

@@ -53,11 +53,19 @@ function App() {
       <Toaster position="top-center" richColors />
       <BrowserRouter>
         <Routes>
+          {/* עמוד הבית */}
           <Route path="/" element={<Index />} />
+          
+          {/* עמוד תודה לאחר הרשמה */}
           <Route path="/thank-you" element={<ThankYou />} />
           
-          {/* ניתובי שאלון */}
+          {/* מסלול שאלון עם כתובות קבועות ואחידות */}
           <Route path="/questionnaire" element={<Questionnaire />} />
+          <Route path="/questionnaire/page/1" element={<Questionnaire />} />
+          <Route path="/questionnaire/page/2" element={<QuestionnairePage2 />} />
+          <Route path="/questionnaire/page/3" element={<QuestionnairePage3 />} />
+          
+          {/* לתאימות עם ניתובים קודמים */}
           <Route path="/questionnaire/page2" element={<QuestionnairePage2 />} />
           <Route path="/questionnaire/page3" element={<QuestionnairePage3 />} />
           

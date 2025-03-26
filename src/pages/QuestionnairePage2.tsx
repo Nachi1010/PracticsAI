@@ -80,40 +80,31 @@ const QuestionnairePage2 = () => {
     setAnswers(updatedAnswers);
   };
   
-  const handleContinue = async () => {
-    // בדיקה שכל השאלות הנדרשות נענו
-    const requiredQuestions = [
-      'problem_solving', 'team_preference', 'learning_motivation', 
-      'ai_opinion', 'work_style', 'failure_approach', 'creativity'
-    ];
-    
-    const answered = requiredQuestions.every(qId => 
-      answers.some(a => a.questionId === qId)
-    );
-    
-    if (!answered) {
-      toast.error("אנא ענה/י על כל השאלות לפני שתמשיך/י");
-      return;
-    }
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     
     try {
-      // שמירת התקדמות במסד הנתונים
+      const userId = await getUserId();
       const { success, error } = await saveQuestionnaireProgress(userId, 2, answers);
       
-      if (!success) {
-        throw new Error(error || 'שגיאה בשמירת ההתקדמות');
+      if (!success || error) {
+        throw new Error(error || 'אירעה שגיאה בשמירת התשובות');
       }
       
-      // מעבר לדף הבא
-      navigate('/questionnaire/page3', { state: { answers } });
+      // ניווט לעמוד הבא
+      navigate('/questionnaire/page/3', { state: { answers } });
     } catch (error) {
-      console.error('Error saving page 2 progress:', error);
-      toast.error("אירעה שגיאה בשמירת ההתקדמות. אנא נסה/י שוב.");
+      console.error('Error submitting form:', error);
+      toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
     } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  const handleBack = () => {
+    navigate('/questionnaire/page/1');
   };
   
   return (
@@ -139,13 +130,13 @@ const QuestionnairePage2 = () => {
             <div className="flex justify-between mt-10">
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/questionnaire')}
+                onClick={handleBack}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 חזרה לעמוד הקודם
               </Button>
               <Button 
-                onClick={handleContinue}
+                onClick={handleSubmit}
                 disabled={isSubmitting}
                 className="bg-gradient-to-r from-blue-600 to-blue-800 text-white px-8 hover:from-blue-700 hover:to-blue-900"
               >

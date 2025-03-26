@@ -114,54 +114,45 @@ const QuestionnairePage3 = () => {
   };
   
   const handleSubmit = async () => {
-    // בדיקה שכל השאלות הנדרשות נענו
-    const requiredQuestions = [
-      'future_vision', 'ethical_dilemma', 'inspiration_source', 
-      'book_preference', 'challenge_response', 'learning_insight', 'adaptation'
-    ];
+    if (isSubmitting) return;
     
-    const answered = requiredQuestions.every(qId => 
-      answers.some(a => a.questionId === qId)
-    );
-    
-    if (!answered) {
-      toast.error("אנא ענה/י על כל השאלות לפני שתגיש/י");
-      return;
-    }
-    
-    // בדיקת תקינות פרטי ההתקשרות
-    if (!validateContactInfo()) {
-      toast.error("יש למלא את כל שדות החובה");
-      return;
-    }
-
     setIsSubmitting(true);
     
     try {
-      // שמירת התקדמות תחילה כגיבוי
-      await saveQuestionnaireProgress(userId, 3, answers, contactInfo);
+      const userId = await getUserId();
       
-      // הגשת כל השאלון
-      const { success, error } = await submitQuestionnaire(userId, answers, contactInfo);
+      // שמירת התקדמות של העמוד האחרון
+      const { success: progressSuccess, error: progressError } = 
+        await saveQuestionnaireProgress(userId, 3, answers, contactInfo);
       
-      if (success) {
-        toast.success("השאלון הוגש בהצלחה!");
-        // מעבר לדף תודה עם ציון שהגענו מהשאלון והעברת שם המשתמש
-        navigate('/thank-you', { 
-          state: { 
-            fromQuestionnaire: true,
-            contactName: contactInfo.name || ''
-          } 
-        });
-      } else {
-        toast.error(`שגיאה בהגשת השאלון: ${error}`);
-        setIsSubmitting(false);
+      if (!progressSuccess || progressError) {
+        throw new Error(progressError || 'אירעה שגיאה בשמירת התשובות');
       }
+      
+      // הגשה סופית של כל השאלון
+      const { success: submitSuccess, error: submitError } = 
+        await submitQuestionnaire(userId, answers, contactInfo);
+      
+      if (!submitSuccess || submitError) {
+        throw new Error(submitError || 'אירעה שגיאה בהגשת השאלון');
+      }
+      
+      // ניווט לדף תודה
+      toast.success('השאלון הוגש בהצלחה! תודה על השתתפותך');
+      setTimeout(() => {
+        navigate('/thank-you', { state: { fromQuestionnaire: true } });
+      }, 1500);
     } catch (error) {
       console.error('Error submitting questionnaire:', error);
-      toast.error("שגיאה בהגשת השאלון, נסה שנית מאוחר יותר");
+      toast.error(error instanceof Error ? error.message : 'אירעה שגיאה לא צפויה');
+    } finally {
       setIsSubmitting(false);
     }
+  };
+  
+  // חזרה לעמוד הקודם
+  const handleBack = () => {
+    navigate('/questionnaire/page/2');
   };
   
   return (
@@ -201,7 +192,7 @@ const QuestionnairePage3 = () => {
             <div className="flex justify-between mt-10">
               <Button 
                 variant="outline" 
-                onClick={() => navigate('/questionnaire/page2')}
+                onClick={handleBack}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 חזרה לעמוד הקודם
