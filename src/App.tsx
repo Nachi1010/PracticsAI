@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, HashRouter } from 'react-router-dom';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
 import ThankYou from './pages/ThankYou';
@@ -51,7 +51,7 @@ function App() {
   return (
     <LanguageProvider>
       <Toaster position="top-center" richColors />
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           {/* עמוד הבית */}
           <Route path="/" element={<Index />} />
@@ -72,7 +72,7 @@ function App() {
           {/* דף 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </LanguageProvider>
   );
 }

@@ -119,7 +119,7 @@ export const Registration = () => {
       const phoneValid = hasValidPhone;
       const showSuccessMessage = nameAndEmailValid || phoneValid;
       
-      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף תודה)
+      // בדיקה אם כל הפרטים הנדרשים מולאו (לצורך מעבר לדף שאלון)
       const allFieldsValid = hasValidName && hasValidEmail && hasValidPhone;
 
       if (showSuccessMessage) {
@@ -131,9 +131,9 @@ export const Registration = () => {
           duration: 5000,
         });
         
-        // ניווט לדף תודה רק אם כל הפרטים מולאו
+        // ניווט לדף השאלון רק אם כל הפרטים מולאו
         if (allFieldsValid) {
-          navigate('/thank-you');
+          navigate('/#/questionnaire');
         }
       } else {
         // הצגת הודעת שגיאה עם פירוט החסרים
