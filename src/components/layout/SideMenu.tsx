@@ -60,10 +60,10 @@ export const SideMenu = ({ isOpen, onClose }: SideMenuProps) => {
           {/* כותרת הסיידמניו */}
           <div className="mb-6 pb-4 border-b border-slate-700/50">
             <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-              {currentLang === "en" ? "PracticsAI" : "פרקטיקס AI"}
+            "PracticsAI"
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              {currentLang === "en" ? "Navigation Menu" : "תפריט ניווט"}
+          "תפריט ניווט"
             </p>
           </div>
           

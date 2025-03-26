@@ -75,10 +75,10 @@ export const Header = ({ onMenuToggle }: HeaderProps) => {
             variant="ghost" 
             size="sm" 
             onClick={() => setCurrentLang(currentLang === "en" ? "he" : "en")}
-            className="text-high-contrast hover:bg-dark-light/20 transition-colors"
+            className="text-slate-300 hover:text-slate-100 hover:bg-slate-700/40 transition-colors"
             aria-label={t.languageLabel}
           >
-            <Globe className="h-5 w-5 mr-2" aria-hidden="true" />
+            <Globe className="h-5 w-5 mr-2 text-slate-400" aria-hidden="true" />
             {t.toggleLanguage}
           </Button>
       </div>

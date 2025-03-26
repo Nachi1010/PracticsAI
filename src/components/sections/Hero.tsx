@@ -6,12 +6,12 @@ import { getImagePath } from "@/App";
 const translations = {
   en: {
     title: "AI development.",
-    subtitle: "Leading the Universe Future",
+    subtitle: "Leading the AI Future",
     cta: "Join"
   },
   he: {
     title: "AI development.",
-    subtitle: "להוביל את עתיד היקום",
+    subtitle: "להוביל את עתיד ה-AI",
     cta: "להרשמה"
   }
 };
