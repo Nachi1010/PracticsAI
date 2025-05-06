@@ -31,8 +31,7 @@
   <meta name="twitter:image" content="https://practicsai.com/og-image.png" />
 
   <!-- Favicon -->
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
 
   <!-- Optional: Structured Data (Schema.org JSON-LD for SEO) -->
   <script type="application/ld+json">
@@ -75,8 +74,19 @@
     ]
   }
   </script>
-  <script type="module" crossorigin src="/assets/index-TNcP_4PP.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CxpAk8Hz.css">
+
+  <!-- Preload Hero Image -->
+  <link rel="preload" as="image" href="/images/1.webp" type="image/webp" fetchpriority="high" />
+    
+  <!-- Preload Critical Fonts -->
+  <link rel="preload" href="/assets/Oswald-Bold-Dk5Rx21r.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="/assets/CormorantGaramond-SemiBold-BPV8bb_0.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="/assets/Assistant-Regular-CCrKtDx3.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+  <link rel="preload" href="/assets/Rubik-Regular-COQatuiD.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+    
+  <!-- Link to local fonts.css -->
+  <script type="module" crossorigin src="/assets/index-DZE7GzI9.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-wL8RvgvG.css">
 </head>
 
 <body>
