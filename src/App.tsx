@@ -8,6 +8,7 @@ import "@/components/ui/cta-button.css";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { UserDataProvider } from "@/contexts/UserDataContext";
+import { RegistrationProvider } from "@/contexts/RegistrationContext";
 import { AccessibilityPanel } from "@/components/ui/AccessibilityPanel";
 import "./App.css"; // ייבוא קובץ ה-CSS העיקרי
 import { useEffect } from "react";
@@ -62,15 +63,17 @@ const App = () => {
       <UserDataProvider>
         <LanguageProvider>
           <AccessibilityProvider>
-            <Toaster />
-            <AccessibilityPanel />
-            <HashRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/thank-you" element={<ThankYou />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </HashRouter>
+            <RegistrationProvider>
+              <Toaster />
+              <AccessibilityPanel />
+              <HashRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/thank-you" element={<ThankYou />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </HashRouter>
+            </RegistrationProvider>
           </AccessibilityProvider>
         </LanguageProvider>
       </UserDataProvider>

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserData } from "@/contexts/UserDataContext";
+import { useRegistration } from "@/contexts/RegistrationContext";
 import { getImagePath } from "@/App";
 import { X } from "lucide-react";
 
@@ -11,6 +12,7 @@ import { X } from "lucide-react";
 export const FloatingRegistration = () => {
   const { currentLang, getTextDirection } = useLanguage();
   const { userIp, isIpLoaded } = useUserData();
+  const { hasStartedRegistration, registrationStartTime } = useRegistration();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -25,8 +27,44 @@ export const FloatingRegistration = () => {
     
     let timer: ReturnType<typeof setTimeout>;
     
+    // בדיקה אם המשתמש התחיל למלא את טופס הרישום הרגיל
+    if (hasStartedRegistration) {
+      // אם המשתמש התחיל למלא את הטופס הרגיל, נבטל את ההצגה או נסתיר אם כבר מוצג
+      if (isVisible) {
+        setIsVisible(false);
+      }
+      
+      // בודקים אם עברה דקה נוספת מאז שהמשתמש התחיל למלא את הטופס הרגיל
+      if (registrationStartTime) {
+        const timeSinceRegistrationStart = Date.now() - registrationStartTime;
+        
+        // אם עברה דקה מאז שהתחיל למלא את הטופס, מתזמנים הצגה חוזרת
+        if (timeSinceRegistrationStart >= REAPPEAR_DELAY) {
+          console.log('זמן מספיק עבר מאז התחלת הרישום הרגיל, נאפשר הצגת טופס צף בשנית');
+          // מתזמנים הצגה אם הטופס לא נסגר ידנית
+          if (!isDismissed) {
+            timer = setTimeout(() => {
+              console.log('מציג טופס צף לאחר שעברה דקה מהתחלת הרישום הרגיל');
+              setIsVisible(true);
+            }, 5000); // נציג אחרי 5 שניות נוספות
+          }
+        } else {
+          // אם טרם עברה דקה, נמתין עד שתעבור דקה מתחילת מילוי הטופס הרגיל
+          const remainingTime = REAPPEAR_DELAY - timeSinceRegistrationStart;
+          timer = setTimeout(() => {
+            console.log('עברה דקה מאז התחלת מילוי הטופס הרגיל, מאפשר הצגת הטופס הצף');
+            // מתזמנים הצגה רק אם הטופס לא נסגר ידנית
+            if (!isDismissed) {
+              timer = setTimeout(() => {
+                setIsVisible(true);
+              }, 5000); // נציג אחרי 5 שניות נוספות
+            }
+          }, remainingTime);
+        }
+      }
+    }
     // בודק אם הטופס כבר נסגר בעבר והאם עבר מספיק זמן להצגה חוזרת
-    if (isDismissed && dismissedTime) {
+    else if (isDismissed && dismissedTime) {
       const timeSinceDismiss = Date.now() - dismissedTime;
       
       // אם עברה דקה מאז שהטופס נסגר, נאפשר הצגה חוזרת
@@ -44,8 +82,8 @@ export const FloatingRegistration = () => {
         }, remainingTime);
       }
     } 
-    // אם הטופס לא נסגר בעבר ולא מוצג כרגע, נציג אותו אחרי חצי דקה
-    else if (!isDismissed && !isVisible) {
+    // אם הטופס לא נסגר בעבר ולא מוצג כרגע, וגם המשתמש לא התחיל למלא את הטופס הרגיל
+    else if (!isDismissed && !isVisible && !hasStartedRegistration) {
       timer = setTimeout(() => {
         console.log('Showing floating registration form after 30 seconds');
         setIsVisible(true);
@@ -56,7 +94,7 @@ export const FloatingRegistration = () => {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isDismissed, isVisible, dismissedTime]);
+  }, [isDismissed, isVisible, dismissedTime, hasStartedRegistration, registrationStartTime]);
   
   // מצב הטופס - ללא שדה תעודת זהות
   const [formData, setFormData] = useState({

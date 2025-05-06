@@ -6,12 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useUserData } from "@/contexts/UserDataContext";
+import { useRegistration } from "@/contexts/RegistrationContext";
 import { getImagePath } from "@/App";
 
 // טופס רישום עם עיצוב מותאם ולוגיקה משופרת
 export const Registration = () => {
   const { currentLang, getTextDirection } = useLanguage();
   const { userIp, isIpLoaded } = useUserData();
+  const { setHasStartedRegistration } = useRegistration();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   
@@ -23,9 +25,22 @@ export const Registration = () => {
     phone: ""
   });
   
-  // עדכון ערכים
+  // עדכון ערכים ועדכון הקונטקסט כאשר המשתמש מתחיל למלא את הטופס
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // בדיקה אם זהו הערך הראשון שהמשתמש מזין (התחלת מילוי טופס הרשמה)
+    if (value && (
+      (formData.name === "" && name === "name") || 
+      (formData.email === "" && name === "email") || 
+      (formData.phone === "" && name === "phone") ||
+      (formData.id === "" && name === "id")
+    )) {
+      // עדכון קונטקסט שהמשתמש התחיל ברישום
+      setHasStartedRegistration(true);
+      console.log("המשתמש התחיל למלא את טופס ההרשמה הראשי");
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
