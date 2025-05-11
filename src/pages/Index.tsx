@@ -35,7 +35,6 @@ const Index = () => {
         <PartnerLogos />
         <CourseDetails />
         <FAQ />
-        <TechnicalDetails />
         <QuestionsAndCTA />
         <FloatingRegistration />
       </main>
