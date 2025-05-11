@@ -26,10 +26,8 @@ export const QuestionsAndCTA = () => {
       title: "האם התכנית מתאימה לך?",
       subtitle: "בדוק אם אתה מתאים לפרופיל המועמדים שלנו:",
       questions: [
-        "<span class='font-bold'>האם</span> יש לך יכולות חישוביות או אנליטיות ברמה גבוהה?",
-        "<span class='font-bold'>האם</span> את/ה בוגר/ת תואר ראשון או בעל/ת ניסיון עשיר ב-domain knowlleg ייחודי?",
         "<span class='font-bold'>האם</span> את/ה אדם שמסוגל להגדיל ראש ולחשוב מחוץ לקופסה?",
-        "<span class='font-bold'>האם</span> את/ה בוגר/ת 5 יח' במתמטיקה?",  
+        "<span class='font-bold'>האם</span> את/ה בוגר/ת 3 יח' ומעלה במתמטיקה?",
         "<span class='font-bold'>האם</span> את/ה כמה לנפץ את הקופסה ולשבור תקרות זכוכית?",
         "<span class='font-bold'>האם</span> יש לך ערך מוסף ייחודי שיוכל לבוא עבורנו לידי שימוש?",
         "<span class='font-bold'>האם</span> יש לך יכולת לשלב תחומי ידע שונים, לנהל חשיבה עצמאית וחדשנית, להבין דברים ולא רק לשמוע?"
