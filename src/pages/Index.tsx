@@ -29,14 +29,13 @@ const Index = () => {
         <Features />
         <Testimonials />
         <Article />
-        <KeyAdvantages />
+        <TechnicalDetails />
         <Statistics />
         <Registration />
         <PartnerLogos />
         <CourseDetails />
         <FAQ />
         <TechnicalDetails />
-        <AboutUs />
         <QuestionsAndCTA />
         <FloatingRegistration />
       </main>
