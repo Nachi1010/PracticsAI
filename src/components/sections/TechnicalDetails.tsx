@@ -48,11 +48,6 @@ export const TechnicalDetails = () => {
           description: "Studies will take place at closerAI's office campus in Palo Alto and Tel Aviv"
         },
         {
-          icon: <Clock className="w-4 h-4" />,
-          title: "Course Duration:",
-          description: "One intensive year, 5 days a week, approximately 40 hours weekly"
-        },
-        {
           icon: <Award className="w-4 h-4" />,
           title: "Certification:",
           description: "Official certification recognized in the industry and backed by 35 leading AI companies"
@@ -101,11 +96,6 @@ export const TechnicalDetails = () => {
           icon: <MapPin className="w-4 h-4" />,
           title: "מיקום:",
           description: "הלימודים יתקיימו בקמפוסים של חברת closerAI במרכזי הערים פאלו-אלטו ותל-אביב"
-        },
-        {
-          icon: <Clock className="w-4 h-4" />,
-          title: "משך הקורס:",
-          description: "שנה אחת אינטנסיבית, 5 ימים בשבוע, כ-40 שעות שבועיות"
         },
         {
           icon: <Award className="w-4 h-4" />,
