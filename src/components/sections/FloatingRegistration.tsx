@@ -661,7 +661,7 @@ export const FloatingRegistration = () => {
     },
     he: {
       title: "מגישים מועמדות כאן ועכשיו",
-      subtitle: "משתלבים בחברת ה-AI מהצומחות בישראל",
+      subtitle: "משתלבים בחברuת ה-AI הצומחות בישראל",
       namePlaceholder: "ישראל ישראלי",
       emailPlaceholder: "your@email.com",
       phonePlaceholder: "050-000-0000",
