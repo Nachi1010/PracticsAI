@@ -29,11 +29,11 @@ const Index = () => {
         <Features />
         <Article />
         <Testimonials />
-        <TechnicalDetails />
+        <CourseDetails />
         <Statistics />
         <Registration />
         <PartnerLogos />
-        <CourseDetails />
+        <TechnicalDetails />
         <FAQ />
         <QuestionsAndCTA />
         <FloatingRegistration />
